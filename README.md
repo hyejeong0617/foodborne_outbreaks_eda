@@ -1,0 +1,223 @@
+# Foodborne Disease Outbreak Analysis
+### CDC FDOSS 1998–2015 · EDA · Entity Normalisation · Interactive Dashboard
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Pandas](https://img.shields.io/badge/Pandas-Data_Wrangling-150458?logo=pandas)](https://pandas.pydata.org)
+[![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-3F4F75?logo=plotly)](https://plotly.com)
+
+---
+
+## Overview
+
+An end-to-end data analysis project on **18,828 confirmed foodborne disease outbreak records** from the US Centers for Disease Control and Prevention (CDC), spanning 18 years (1998–2015) across 55 states and territories.
+
+The project moves from raw surveillance data to a production-grade interactive dashboard, with domain-informed analytical decisions at every stage — reflecting the author's background in food safety microbiology and quantitative biology.
+
+**Live dashboard →** *(deploy link)*  
+**Data source →** [CDC FDOSS via Kaggle](https://www.kaggle.com/datasets/cdc/foodborne-diseases)
+
+---
+
+## Key findings
+
+| Dimension | Finding |
+|---|---|
+| **Trend** | Outbreak frequency declined 31% from 1998 to 2015 |
+| **Seasonality** | Bimodal: summer bacterial peak (May–Jun) + winter Norovirus peak (Dec) |
+| **Illness burden** | Norovirus: **39.5%** of all illnesses (137,642 cases) |
+| **Hospitalisation burden** | *Salmonella enterica*: **54%** of all hospitalisations |
+| **Highest fatality rate** | *Listeria monocytogenes*: **16%** (large N, clinically established) |
+| **Highest-risk food–pathogen pair** | Norovirus × Salad: 10,835 illnesses |
+| **Setting scale anomaly** | Prison/Jail avg **107 cases/event** — 8× Restaurant average |
+| **Setting severity anomaly** | Private Home hosp. rate **9.3%** — 3× Restaurant (3.6%) |
+| **Fatality concentration** | Nursing Home: **44 deaths** from 186 outbreaks (0.78% fatality rate) |
+
+**Central analytical observation:** Frequency rankings and severity rankings invert across both pathogens (Norovirus vs Salmonella) and settings (Restaurant vs Prison/Home). The mechanisms behind these patterns are observable in the data; their causes require information beyond what FDOSS records.
+
+---
+
+## Project structure
+
+```
+foodborne-disease-eda/
+├── data/
+│   ├── outbreaks.csv                    # Raw CDC dataset (19,119 records)
+│   └── cleaned_data_grouped.csv         # Final analysis-ready dataset (18,828 × 12)
+│
+├── NB1_Data_Cleaning.ipynb              # Audit, deduplication, missing value strategy
+├── NB2_Entity_Normalisation.ipynb       # RapidFuzz grouping + manual mapping + location
+├── NB3_EDA.ipynb                        # Full EDA: univariate, bivariate, location analysis
+│
+├── dashboard.py                         # 3-page Streamlit dashboard
+└── requirements.txt
+```
+
+---
+
+## Analysis pipeline
+
+### 01 · Data cleaning
+
+**Input:** `outbreaks.csv` — 19,119 raw records × 12 columns  
+**Output:** `cleaned_data.csv` — 18,828 records × 9 columns
+
+| Problem | Decision | Rationale |
+|---|---|---|
+| 291 duplicate rows | Removed | True duplicates confirmed |
+| Location missing (2,151) | `→ 'Unknown'` | Preserves outbreak count integrity |
+| Food missing (8,697) | `→ 'Unknown'` | 47% retention; temporal analysis still valid |
+| Species missing (6,390) | `→ 'Unknown'` | Same rationale; missingness is informative |
+| Hospitalizations / Fatalities missing | `→ 0.0` | Conservative; absence of report ≠ absence of event |
+| Ingredient / Serotype / Status | Dropped | 80–90% missing; outside EDA scope |
+
+---
+
+### 02 · Entity normalisation
+
+**Input:** `cleaned_data.csv`  
+**Output:** `cleaned_data_grouped.csv` — + three new columns: `Food_grouped`, `Species_grouped`, `primary_location`
+
+The raw dataset contains **3,128 unique Food strings** and **201 unique Species strings** due to 18 years of free-text entry across 55 jurisdictions. Naive groupby analysis on raw strings conflates "Chicken, Fried", "Chicken Salad", and "Chicken, Unspecified" as distinct categories.
+
+**Method — three-stage pipeline:**
+
+```
+Stage 1: RapidFuzz token_sort_ratio (threshold 70 for Food, 85 for Species)
+         → auto-clusters near-duplicate strings by edit distance
+
+Stage 2: Domain-informed manual mapping (60 Food corrections, 11 Species corrections)
+         → resolves cases where string similarity alone is insufficient
+         e.g. "Norovirus genogroup I/II" → Norovirus (same epidemiological unit)
+              "Chicken Salad" → Chicken (analytical decision under uncertainty;
+               the true contamination source cannot be determined without lab data)
+
+Stage 3: Repeated-entry collapse
+         → "Salmonella enterica; × 13" → "Salmonella enterica"
+         → genuine co-infections ("Bacillus cereus; Norovirus") preserved unchanged
+
+Stage 4: Location primary venue extraction
+         → "Restaurant; Catering Service; Grocery Store" → "Restaurant"
+         → 161 compound strings → 21 meaningful venue types
+```
+
+**Results:**
+
+| Column | Before | After | Reduction |
+|---|---|---|---|
+| Food | 3,128 strings | 1,366 categories | 56% |
+| Species | 201 strings | 139 categories | 31% |
+| Location | 161 compound strings | 21 venue types | 87% |
+
+**Why RapidFuzz over TF-IDF or embeddings:**
+Empirical comparison on this dataset showed that all three methods achieve similar accuracy on Type 1 problems (spelling variants) but all fail on Type 2 problems (semantic classification — e.g., which primary vehicle drives a mixed dish). The irreducible constraint is domain knowledge, not algorithm choice. RapidFuzz was selected for transparency and interpretability of the matching process.
+
+**Scope limitation:** The binding analytical constraint is not ungrouped categories but the 46.2% Unknown rate in Food — a structural property of CDC surveillance design that no normalisation method can resolve.
+
+---
+
+### 03 · Exploratory data analysis
+
+**Five research questions:**
+
+1. What are the temporal and seasonal patterns of outbreaks?
+2. Which food vehicles and pathogens drive the highest burden?
+3. Which pathogens pose the greatest clinical severity?
+4. What food–pathogen combinations are most dangerous?
+5. Where do outbreaks occur — and does setting determine severity?
+
+**Analysis structure:** Univariate → Bivariate (Num×Num, Cat×Num, Cat×Cat) → Location risk profiling
+
+**Section 3.4 — Setting severity profile:**
+A bubble chart (x: average outbreak size, y: hospitalisation rate, bubble: total outbreaks) shows three settings with anomalous profiles relative to Restaurant:
+
+- **Prison/Jail:** Average 107 cases/event — 8× larger than Restaurant (14). Why this pattern exists cannot be determined from FDOSS alone.
+- **Private Home:** 9.3% hospitalisation rate — 3× higher than Restaurant (3.6%). The dataset records where food was consumed, not who consumed it.
+- **Nursing Home:** 44 fatalities from 186 outbreaks — the highest fatality concentration per outbreak count. This is an observed association; the cause requires data beyond this dataset.
+
+Colour coding in charts is determined by observed data (hospitalisation rate above/below median), not by pre-assigned vulnerability categories.
+
+**Section 3.5 — Setting × pathogen matrix:**
+Norovirus dominates most settings by both outbreak count and illness burden. Two exceptions are observable in the data: Prison/Jail, where *Clostridium perfringens* produces the largest illness burden despite fewer outbreaks; and Private Home, the only setting where *Salmonella enterica* leads on both metrics. Settings are explicitly defined to match Section 3.4 scope — including Nursing Home despite lower outbreak count, because its fatality profile warrants inclusion.
+
+---
+
+### Dashboard
+
+A 3-page interactive Streamlit application with a global year-range filter and top-N selector.
+
+| Page | Focus | Charts |
+|---|---|---|
+| **📊 Overview** | Trend, seasonality, geography, frequency | Annual dual-axis trend, monthly seasonality, state ranking, food/pathogen frequency |
+| **🦠 Pathogen risk** | Burden, severity rates, seasonal composition, food×pathogen matrix | Illness vs hospitalisation bar charts, hosp/fatality rate rankings, seasonal stacked bar, interactive heatmap |
+| **📍 Location analysis** | Setting severity profile, three-dimension severity comparison, setting×pathogen | Bubble chart, 3-panel severity bars, interactive heatmap |
+
+Design: custom CSS via `unsafe_allow_html`, HTML insight cards with colour-coded left-border accents and prominent key numbers, colour-coded KPI cards. All key findings are displayed at the top of each page before the charts.
+
+---
+
+## Tech stack
+
+| Layer | Tools |
+|---|---|
+| Data wrangling | Python · pandas · numpy |
+| String normalisation | RapidFuzz (fuzzy matching) |
+| Statistical analysis | pandas · scipy |
+| Visualisation (EDA) | matplotlib · seaborn |
+| Visualisation (dashboard) | Plotly Express · Plotly Graph Objects |
+| Dashboard framework | Streamlit |
+
+---
+
+## Setup and run
+
+```bash
+git clone https://github.com/hyejeong0617/foodborne-disease-eda.git
+cd foodborne-disease-eda
+pip install -r requirements.txt
+streamlit run dashboard.py
+```
+
+**Notebook execution order:**
+```
+NB1_Data_Cleaning.ipynb
+    → cleaned_data.csv
+NB2_Entity_Normalisation.ipynb
+    → cleaned_data_grouped.csv
+NB3_EDA.ipynb
+    → (analysis and visualisations)
+```
+
+---
+
+## Domain context
+
+This project applies the analytical discipline developed during doctoral research at NTNU (2019–2023), where I characterised antimicrobial resistance genes and virulence factors in *Aeromonas* spp. at the molecular level. The transition from genomic-scale data to population-level surveillance data requires the same core skill: generating falsifiable hypotheses from noisy biological data and being precise about what the data can and cannot establish.
+
+Specific domain knowledge that shaped analytical decisions in this project:
+
+- Recognising that the seasonal bimodality (summer peak vs winter peak) reflects pathogen ecology rather than reporting artefact — and treating it as a data observation, not a confirmed mechanism
+- Correctly merging "Norovirus genogroup I" and "Norovirus genogroup II" as the same epidemiological entity while keeping *Salmonella enterica* and *Salmonella* spp. as separate categories for aggregation purposes
+- Recognising that multi-ingredient dish classifications (e.g. "Chicken Salad") are analytical decisions under uncertainty, not microbiological determinations — and documenting this limitation explicitly
+- Interpreting *Vibrio vulnificus* 50% fatality rate as a small-N artefact (2 cases) vs *Listeria monocytogenes* 16% as clinically established (large N)
+- Distinguishing between what FDOSS data can establish (observed patterns in setting × pathogen distribution) and what it cannot (transmission mechanisms, causal explanations)
+
+The same domain-knowledge-driven approach was applied at a larger scale in the [RASFF EU Regulatory Risk Classification project](https://github.com/hyejeong0617/rasff_risk_predictor), where 29,984 EU regulatory notifications were classified by risk severity using XGBoost + NLP (AUC-ROC 0.857).
+
+---
+
+## Related projects
+
+| Project | Domain | Type | Status |
+|---|---|---|---|
+| **This repo** | Food safety surveillance | EDA · SQL · Streamlit | ✅ Complete |
+| [rasff_risk_predictor](https://github.com/hyejeong0617/rasff_risk_predictor) | EU regulatory notifications | ML pipeline · NLP · Streamlit | ✅ Live |
+| [fake-news-classification](https://github.com/hyejeong0617/fake-news-classification) | NLP text classification | TF-IDF · LinearSVC · F1: 0.968 | 🔄 In progress |
+| [house-price-prediction](https://github.com/hyejeong0617/house-price-prediction) | Regression modelling | XGBoost · Random Forest · R²: 0.88 | 🔄 In progress |
+
+---
+
+**Hyejeong (Hayley) Lee**  
+Ph.D. Biotechnology — Microbial Genomics & Quantitative Biology (NTNU, 2023)  
+Data Science & ML (Ironhack Bootcamp, 2025)  
+[github.com/hyejeong0617](https://github.com/hyejeong0617) · hyejeong0617@gmail.com
