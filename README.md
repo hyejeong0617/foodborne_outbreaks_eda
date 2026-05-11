@@ -120,27 +120,19 @@ Empirical comparison on this dataset showed that all three methods achieve simil
 
 ### 03 · Exploratory data analysis
 
-**Five research questions:**
-
-1. What are the temporal and seasonal patterns of outbreaks?
-2. Which food vehicles and pathogens drive the highest burden?
-3. Which pathogens pose the greatest clinical severity?
-4. What food–pathogen combinations are most dangerous?
-5. Where do outbreaks occur — and does setting determine severity?
-
 **Analysis structure:** Univariate → Bivariate (Num×Num, Cat×Num, Cat×Cat) → Location risk profiling
 
-**Section 3.4 — Setting severity profile:**
-A bubble chart (x: average outbreak size, y: hospitalisation rate, bubble: total outbreaks) shows three settings with anomalous profiles relative to Restaurant:
-
-- **Prison/Jail:** Average 107 cases/event — 8× larger than Restaurant (14). Why this pattern exists cannot be determined from FDOSS alone.
-- **Private Home:** 9.3% hospitalisation rate — 3× higher than Restaurant (3.6%). The dataset records where food was consumed, not who consumed it.
-- **Nursing Home:** 44 fatalities from 186 outbreaks — the highest fatality concentration per outbreak count. This is an observed association; the cause requires data beyond this dataset.
-
-Colour coding in charts is determined by observed data (hospitalisation rate above/below median), not by pre-assigned vulnerability categories.
-
-**Section 3.5 — Setting × pathogen matrix:**
-Norovirus dominates most settings by both outbreak count and illness burden. Two exceptions are observable in the data: Prison/Jail, where *Clostridium perfringens* produces the largest illness burden despite fewer outbreaks; and Private Home, the only setting where *Salmonella enterica* leads on both metrics. Settings are explicitly defined to match Section 3.4 scope — including Nursing Home despite lower outbreak count, because its fatality profile warrants inclusion.
+| Section | Focus | Key observation |
+|---|---|---|
+| **3.1 Temporal** | Annual trend + seasonality | Outbreaks declined 31% from 1998–2015; bimodal seasonal pattern (summer bacterial peak + winter Norovirus peak) |
+| **3.2 Food & pathogen frequency** | Top food vehicles + pathogens by outbreak count | Salad #1 food vehicle; Norovirus dominates frequency but not severity |
+| **3.3 Geography** | State + primary venue distribution | Florida #1 state; Restaurant accounts for 54% of outbreaks by count |
+| **3.4 Setting severity profile** | Outbreak scale × hospitalisation rate × fatality | Three settings show anomalous profiles: Prison/Jail (avg 107 cases/event), Private Home (9.3% hosp rate), Nursing Home (44 fatalities from 186 outbreaks) |
+| **4.1 Num × Num** | Illnesses vs hospitalisations correlation | Pearson r = 0.39 — outbreak size alone does not predict hospitalisation burden |
+| **4.2 Pathogen burden & severity** | Total illnesses vs hospitalisations; hosp/fatality rates | Norovirus leads illness count; Salmonella leads hospitalisation burden — rankings invert by metric |
+| **4.3 Temporal × pathogen** | Annual + seasonal pathogen composition | Pathogen composition stable across years; Norovirus peaks winter, Salmonella peaks summer |
+| **4.4 Food × pathogen matrix** | Illness burden by food–pathogen combination | Norovirus × Salad: 10,835 illnesses — highest of any single combination |
+| **3.5 Setting × pathogen** | Pathogen composition per venue type | Norovirus dominant in most settings; *Clostridium perfringens* produces highest illness burden in Prison/Jail; *Salmonella* leads in Private Home |
 
 ---
 
@@ -174,8 +166,8 @@ Design: custom CSS via `unsafe_allow_html`, HTML insight cards with colour-coded
 ## Setup and run
 
 ```bash
-git clone https://github.com/hyejeong0617/foodborne-disease-eda.git
-cd foodborne-disease-eda
+git clone https://github.com/hyejeong0617/foodborne_outbreaks_eda.git
+cd foodborne_outbreaks_eda
 pip install -r requirements.txt
 streamlit run dashboard.py
 ```
