@@ -2,7 +2,7 @@
 ### CDC FDOSS 1998–2015 · EDA · Entity Normalisation · Interactive Dashboard
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
+[![Streamlit](https://img.shields.io/badge/Streamlit-Live_Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://cdcfoodborneoutbreakseda.streamlit.app/)
 [![Pandas](https://img.shields.io/badge/Pandas-Data_Wrangling-150458?logo=pandas)](https://pandas.pydata.org)
 [![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-3F4F75?logo=plotly)](https://plotly.com)
 
