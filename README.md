@@ -14,8 +14,10 @@ An end-to-end data analysis project on **18,828 confirmed foodborne disease outb
 
 The project moves from raw surveillance data to a production-grade interactive dashboard, with domain-informed analytical decisions at every stage — reflecting the author's background in food safety microbiology and quantitative biology.
 
-**Live dashboard →** *(deploy link)*  
+**Live dashboard →** [cdcfoodborneoutbreakseda.streamlit.app](https://cdcfoodborneoutbreakseda.streamlit.app/)  
 **Data source →** [CDC FDOSS via Kaggle](https://www.kaggle.com/datasets/cdc/foodborne-diseases)
+
+![Dashboard Preview](assets/dashboard_preview.png)
 
 ---
 
