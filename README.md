@@ -1,11 +1,12 @@
 # 🍽️ Foodborne Disease Outbreak Analysis
 
-### *CDC FDOSS 1998–2015 · EDA · Entity Normalisation · Interactive Dashboard*
+### *CDC FDOSS 1998–2015 · EDA · SQL Analysis · Entity Normalisation · Interactive Dashboard*
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Live_Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://cdcfoodborneoutbreakseda.streamlit.app/)
 [![Pandas](https://img.shields.io/badge/Pandas-Data_Wrangling-150458?logo=pandas)](https://pandas.pydata.org)
 [![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-3F4F75?logo=plotly)](https://plotly.com)
+[![SQLite](https://img.shields.io/badge/SQLite-SQL_Analysis-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
 
 ---
 
@@ -60,6 +61,7 @@ foodborne-disease-eda/
 ├── NB1_Data_Cleaning.ipynb              # Audit, deduplication, missing value strategy
 ├── NB2_Entity_Normalisation.ipynb       # RapidFuzz grouping + manual mapping + location
 ├── NB3_EDA.ipynb                        # Full EDA: univariate, bivariate, location analysis
+├── NB4_SQL_Analysis.ipynb               # SQL analysis: aggregation, JOIN, window functions, CASE WHEN
 │
 ├── dashboard.py                         # 3-page Streamlit dashboard
 └── requirements.txt
@@ -145,6 +147,34 @@ Stage 4: Location primary venue extraction
 
 ---
 
+### 🗄️ 04 · SQL Analysis
+
+**Input:** `cleaned_data_grouped.csv` loaded into SQLite via Python  
+**Notebook:** `NB4_SQL_Analysis.ipynb`
+
+SQL re-analysis of the EDA findings — reproducing and extending NB3 results using structured queries. Demonstrates Python + SQL integration via `sqlite3` and `pandas.read_sql_query`.
+
+| SQL technique | Applied in |
+|---|---|
+| `SELECT`, `GROUP BY`, `ORDER BY`, `LIMIT` | Q1–Q9: temporal, geographic, frequency analysis |
+| Aggregate functions: `COUNT`, `SUM`, `ROUND` | Q1–Q9 |
+| Derived metrics: `SUM(x) / SUM(y)` | Q10–Q11: hospitalisation and fatality rates |
+| `WHERE`, `HAVING` | Q10–Q11: small-N artefact filtering |
+| Multi-column `GROUP BY` | Q12: food × pathogen combinations |
+| Subquery in `FROM` + `JOIN` | Q13: state severity score (outbreak count × hosp rate) |
+| `CASE WHEN` classification | Q14: pathogen risk tier (Critical / Severe / Moderate / Low) |
+| Window functions: `LAG`, `SUM OVER` | Q15: year-on-year change + cumulative outbreak count |
+
+**Key SQL findings:**
+
+| Query | Finding |
+|---|---|
+| Q13 · JOIN | State severity score reveals high-frequency states are not always high-severity |
+| Q14 · CASE WHEN | *Listeria monocytogenes* and *Salmonella* classified Critical/Severe; Norovirus classified Low despite highest illness burden |
+| Q15 · Window functions | YoY decline trend confirmed from 2000 peak; cumulative total reaches 18,828 by 2015 |
+
+---
+
 ### 🖥️ Dashboard
 
 A 3-page interactive Streamlit application with a global year-range filter and top-N selector.
@@ -164,6 +194,7 @@ A 3-page interactive Streamlit application with a global year-range filter and t
 | Data wrangling | Python · pandas · numpy |
 | String normalisation | RapidFuzz (fuzzy matching) |
 | Statistical analysis | pandas · scipy |
+| Database queries | SQLite · SQL (aggregation, JOIN, window functions, CASE WHEN) |
 | Visualisation (EDA) | matplotlib · seaborn |
 | Visualisation (dashboard) | Plotly Express · Plotly Graph Objects |
 | Dashboard framework | Streamlit |
@@ -187,6 +218,8 @@ NB2_Entity_Normalisation.ipynb
     → cleaned_data_grouped.csv
 NB3_EDA.ipynb
     → (analysis and visualisations)
+NB4_SQL_Analysis.ipynb
+    → (SQL queries and visualisations)
 ```
 
 ---
@@ -209,8 +242,8 @@ Specific domain knowledge that shaped analytical decisions in this project:
 
 | Project | Domain | Type | Status |
 |---|---|---|---|
-| **This repo** | Food safety surveillance | EDA · entity normalisation · Streamlit | ✅ Live |
-| [rasff_risk_predictor](https://github.com/hyejeong0617/rasff_risk_predictor) | EU regulatory notifications | ML pipeline · NLP · Streamlit | ✅ Live|
+| **This repo** | Food safety surveillance | EDA · SQL · entity normalisation · Streamlit | ✅ Live |
+| [rasff_risk_predictor](https://github.com/hyejeong0617/rasff_risk_predictor) | EU regulatory notifications | ML pipeline · NLP · Streamlit | ✅ Live |
 | [amr_genomics_aeromonas](https://github.com/hyejeong0617/amr_genomics_aeromonas) | Microbial genomics · food safety | WGS pipeline · Python analysis · Streamlit | ✅ Live |
 
 **The three projects form a connected portfolio** — analysing the food safety problem at three different scales: population-level surveillance data (this repo), real-time EU regulatory signal (RASFF ML), and molecular genomics (AMR genomics).
