@@ -242,11 +242,12 @@ Specific domain knowledge that shaped analytical decisions in this project:
 
 | Project | Domain | Type | Status |
 |---|---|---|---|
-| **This repo** | Food safety surveillance | EDA · SQL · entity normalisation · Streamlit | ✅ Live |
 | [rasff_risk_predictor](https://github.com/hyejeong0617/rasff_risk_predictor) | EU regulatory notifications | ML pipeline · NLP · Streamlit | ✅ Live |
-| [amr_genomics_aeromonas](https://github.com/hyejeong0617/amr_genomics_aeromonas) | Microbial genomics · food safety | WGS pipeline · Python analysis · Streamlit | ✅ Live |
+| **This repo** | Food safety surveillance | EDA · SQL · entity normalisation · Streamlit | ✅ Live |
+| [aeromonas-growth-predictor](https://github.com/hyejeong0617/aeromonas-growth-predictor) | Predictive microbiology · food safety | ML · GPR · SHAP · Streamlit | ✅ Live |
+| [amr_genomics_aeromonas](https://github.com/hyejeong0617/amr_genomics_aeromonas) | Microbial genomics · One Health | WGS pipeline · Python analysis · Streamlit | ✅ Live |
 
-**The three projects form a connected portfolio** — analysing the food safety problem at three different scales: population-level surveillance data (this repo), real-time EU regulatory signal (RASFF ML), and molecular genomics (AMR genomics).
+**The four projects form a connected portfolio** — analysing food safety risk at four scales: real-time EU regulatory signal (RASFF ML), population-level surveillance (this repo), growth kinetics modelling (Aeromonas predictor), and molecular genomics (AMR genomics).
 
 ---
 
@@ -257,4 +258,5 @@ Specific domain knowledge that shaped analytical decisions in this project:
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Hyejeong%20Lee-0077B5?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hyejeong-lee-75887465/)
 [![GitHub](https://img.shields.io/badge/GitHub-hyejeong0617-181717?logo=github&logoColor=white)](https://github.com/hyejeong0617)
 
-*Open to Scientific Data Analyst and Regulatory Intelligence roles (Germany / Remote).*
+*Open to Domain Data Scientist / Regulatory Data Analyst roles in food safety, 
+      pharma, and biotech — Remote / Hybrid · Germany-based.*
