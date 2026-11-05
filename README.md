@@ -1,262 +1,129 @@
-# 🍽️ Foodborne Disease Outbreak Analysis
+# Foodborne Disease Outbreak Analysis
 
-### *CDC FDOSS 1998–2015 · EDA · SQL Analysis · Entity Normalisation · Interactive Dashboard*
+**CDC foodborne outbreak surveillance (1998–2015) · Exploratory Data Analysis · SQL · Entity Normalisation · Streamlit**
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Live_Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://cdcfoodborneoutbreakseda.streamlit.app/)
-[![Pandas](https://img.shields.io/badge/Pandas-Data_Wrangling-150458?logo=pandas)](https://pandas.pydata.org)
-[![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-3F4F75?logo=plotly)](https://plotly.com)
-[![SQLite](https://img.shields.io/badge/SQLite-SQL_Analysis-003B57?logo=sqlite&logoColor=white)](https://sqlite.org)
+[![Live Dashboard](https://img.shields.io/badge/Live_Dashboard-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://cdcfoodborneoutbreakseda.streamlit.app/)
+[![Notebook validation](https://github.com/hyejeong0617/foodborne_outbreaks_eda/actions/workflows/validate_outbreak_notebooks.yml/badge.svg)](https://github.com/hyejeong0617/foodborne_outbreaks_eda/actions/workflows/validate_outbreak_notebooks.yml)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![SQL](https://img.shields.io/badge/SQL-SQLite-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 
----
+**[Explore the interactive dashboard](https://cdcfoodborneoutbreakseda.streamlit.app/)** · **[Review validated notebooks](https://github.com/hyejeong0617/foodborne_outbreaks_eda/actions/runs/42020479803)** · **[View the data source](https://www.kaggle.com/datasets/cdc/foodborne-diseases)**
 
-## 🖥️ Streamlit Application
+## At a glance
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://cdcfoodborneoutbreakseda.streamlit.app/)
+**Research question:** What changes when foodborne disease surveillance is viewed through *outbreak frequency*, *illness burden*, and *reported clinical severity* rather than any single ranking?
 
-**Live dashboard →** [cdcfoodborneoutbreakseda.streamlit.app](https://cdcfoodborneoutbreakseda.streamlit.app/)
+This project analyses **18,839 distinct outbreak records** in the available CDC FDOSS-derived dataset (1998–2015). It combines pandas-based cleaning, domain-informed grouping of free-text food/pathogen labels, exploratory analysis, SQLite queries, and a four-section Streamlit data story.
 
-A 3-page interactive dashboard: outbreak trends and seasonality, pathogen burden and severity rankings, and setting-level risk profiling — with a global year-range filter and top-N selector.
+The goal is not to predict individual illness or assign causal risk. It is to show how careful data preparation, denominator selection, and appropriate visualisation affect the interpretation of public-health surveillance patterns.
 
----
-
-## 📌 Overview
-
-An end-to-end data analysis project on **18,828 confirmed foodborne disease outbreak records** from the US Centers for Disease Control and Prevention (CDC), spanning 18 years (1998–2015) across 55 states and territories.
-
-The project moves from raw surveillance data to a production-grade interactive dashboard, with domain-informed analytical decisions at every stage — reflecting the author's background in food safety microbiology and quantitative biology.
-
-**Data source →** [CDC FDOSS via Kaggle](https://www.kaggle.com/datasets/cdc/foodborne-diseases)
-
-![Dashboard Preview](assets/dashboard_preview.png)
-
----
-
-## 🔑 Key Findings
-
-| Dimension | Finding |
+| Portfolio evidence | What the project demonstrates |
 |---|---|
-| **Trend** | Outbreak frequency declined 31% from 1998 to 2015 |
-| **Seasonality** | Bimodal: summer bacterial peak (May–Jun) + winter Norovirus peak (Dec) |
-| **Illness burden** | Norovirus: **39.5%** of all illnesses (137,642 cases) |
-| **Hospitalisation burden** | *Salmonella enterica*: **54%** of all hospitalisations |
-| **Highest fatality rate** | *Listeria monocytogenes*: **16%** (large N, clinically established) |
-| **Highest-risk food–pathogen pair** | Norovirus × Salad: 10,835 illnesses |
-| **Setting scale anomaly** | Prison/Jail avg **107 cases/event** — 8× Restaurant average |
-| **Setting severity anomaly** | Private Home hosp. rate **9.3%** — 3× Restaurant (3.6%) |
-| **Fatality concentration** | Nursing Home: **44 deaths** from 186 outbreaks (0.78% fatality rate) |
+| Data integrity | Source-record reconciliation; explicit handling of unknown categories and missing clinical outcomes |
+| Scientific analysis | Temporal trends, pathogen burden, food–pathogen associations, and differences across outbreak settings |
+| SQL | Aggregation, joins, conditional logic, and window functions in a separate analytical notebook |
+| Communication | A focused, interactive Streamlit dashboard with accessible light styling and contextual interpretation |
+| Reproducibility | GitHub Actions successfully validates the canonical dataset and executes NB3 and NB4 |
 
-**Central analytical observation:** Frequency rankings and severity rankings invert across both pathogens (Norovirus vs Salmonella) and settings (Restaurant vs Prison/Home). The mechanisms behind these patterns are observable in the data; their causes require information beyond what FDOSS records.
+## Explore the dashboard
 
----
+**[Launch the dashboard](https://cdcfoodborneoutbreakseda.streamlit.app/)**
 
-## 🗂️ Project Structure
+The final portfolio interface is organised around four questions. The year filter updates the visible metrics and figures; selected secondary analyses are available in expandable sections.
 
-```
-foodborne-disease-eda/
-├── data/
-│   ├── outbreaks.csv                    # Raw CDC dataset (19,119 records)
-│   └── cleaned_data_grouped.csv         # Final analysis-ready dataset (18,828 × 12)
-│
-├── NB1_Data_Cleaning.ipynb              # Audit, deduplication, missing value strategy
-├── NB2_Entity_Normalisation.ipynb       # RapidFuzz grouping + manual mapping + location
-├── NB3_EDA.ipynb                        # Full EDA: univariate, bivariate, location analysis
-├── NB4_SQL_Analysis.ipynb               # SQL analysis: aggregation, JOIN, window functions, CASE WHEN
-│
-├── dashboard.py                         # 3-page Streamlit dashboard
-└── requirements.txt
-```
-
----
-
-## 🏗️ Analysis Pipeline
-
-### 🧹 01 · Data Cleaning
-
-**Input:** `outbreaks.csv` — 19,119 raw records × 12 columns  
-**Output:** `cleaned_data.csv` — 18,828 records × 9 columns
-
-| Problem | Decision | Rationale |
+| Section | Question | Visual evidence |
 |---|---|---|
-| 291 duplicate rows | Removed | True duplicates confirmed |
-| Location missing (2,151) | `→ 'Unknown'` | Preserves outbreak count integrity |
-| Food missing (8,697) | `→ 'Unknown'` | 47% retention; temporal analysis still valid |
-| Species missing (6,390) | `→ 'Unknown'` | Same rationale; missingness is informative |
-| Hospitalizations / Fatalities missing | `→ 0.0` | Conservative; absence of report ≠ absence of event |
-| Ingredient / Serotype / Status | Dropped | 80–90% missing; outside EDA scope |
+| **01 · The big picture** | What do 18 years of reported outbreaks reveal? | Annual outbreak counts; optional monthly seasonality |
+| **02 · Pathogen burden** | Which pathogens contribute the greatest reported disease burden? | Ranking by illnesses or hospitalisations; hospitalization ratios for selected pathogens |
+| **03 · Food & pathogen links** | Which identified food vehicles and pathogens are reported together? | Food frequency; leading food–pathogen combinations by events or illnesses |
+| **04 · Where outbreaks happen** | How does the observed burden differ by venue? | Mean illnesses per outbreak; optional hospitalization ratios by setting |
 
----
+Rather than crowding each view with every analysis, the dashboard foregrounds one question and a small number of interpretable figures. **The deeper EDA and SQL work remains in the notebooks.**
 
-### 🔤 02 · Entity Normalisation
+## Selected findings & interpretation
 
-**Input:** `cleaned_data.csv`  
-**Output:** `cleaned_data_grouped.csv` — + three new columns: `Food_grouped`, `Species_grouped`, `primary_location`
+- **Trend and seasonality:** Reported outbreak counts change considerably across 1998–2015; monthly summaries offer a second view. Changes in reporting do **not**, by themselves, establish changes in individual exposure or incidence.
+- **Frequency versus severity:** In the full-period dashboard, **Norovirus** leads the ranking by reported illnesses. Switching to hospitalizations changes the ranking and therefore the public-health question being asked.
+- **Food–pathogen combinations:** Grouped foods and pathogens allow repeated reporting patterns to be compared. A frequently reported pair is an *association in surveillance records*, not proof that a particular ingredient caused the outbreak.
+- **Setting differences:** Reported outbreak size varies across venues; **Prison/Jail** stands out for average illnesses per event in the full-period view. This descriptive pattern does not establish the reason for that difference.
 
-The raw dataset contains **3,128 unique Food strings** and **201 unique Species strings** due to 18 years of free-text entry across 55 jurisdictions. Naive groupby analysis on raw strings conflates "Chicken, Fried", "Chicken Salad", and "Chicken, Unspecified" as distinct categories.
+All rankings are recalculated from the selected data range. The dashboard deliberately avoids fixed historical percentages that can become misleading when definitions or denominators change.
 
-**Method — four-stage pipeline:**
+## Data integrity: 2026-11-05 correction
 
-```
-Stage 1: RapidFuzz token_sort_ratio (threshold 70 for Food, 85 for Species)
-         → auto-clusters near-duplicate strings by edit distance
+The current canonical file, `data/cleaned_data_grouped.csv`, reflects the latest source-record audit. **Do not use the older 18,828-row figure or treat unreported outcomes as zero.**
 
-Stage 2: Domain-informed manual mapping (60 Food corrections, 11 Species corrections)
-         → resolves cases where string similarity alone is insufficient
-         e.g. "Norovirus genogroup I/II" → Norovirus (same epidemiological unit)
-              "Chicken Salad" → Chicken (analytical decision under uncertainty;
-               the true contamination source cannot be determined without lab data)
+| Canonical-data check | Verified value |
+|---|---:|
+| Distinct source records used for analysis | **18,839** |
+| Missing `Hospitalizations` values | **3,560** |
+| Missing `Fatalities` values | **3,538** |
+| Missing values in `Food_grouped`, `Species_grouped`, `primary_location` | **0** (unknown categories are represented explicitly) |
 
-Stage 3: Repeated-entry collapse
-         → "Salmonella enterica; × 13" → "Salmonella enterica"
-         → genuine co-infections ("Bacillus cereus; Norovirus") preserved unchanged
+**Outcome-specific rates:** A hospitalization ratio uses illnesses from events with a recorded hospitalization outcome and a positive illness count; a fatality ratio applies the analogous rule to fatality reporting. Counts that are missing remain `NaN` in the data. These are **descriptive reported-outcome ratios**, not unbiased population estimates of clinical risk. Different degrees of missing reporting may affect comparisons between groups.
 
-Stage 4: Location primary venue extraction
-         → "Restaurant; Catering Service; Grocery Store" → "Restaurant"
-         → 161 compound strings → 21 meaningful venue types
-```
+Other limitations include unknown/ambiguous food vehicles, surveillance underreporting, unequal reporting practices across years and jurisdictions, free-text categorisation, and the inability to infer causal mechanisms from the observed associations.
 
-**Results:**
+## How the analysis was built
 
-| Column | Before | After | Reduction |
-|---|---|---|---|
-| Food | 3,128 strings | 1,366 categories | 56% |
-| Species | 201 strings | 139 categories | 31% |
-| Location | 161 compound strings | 21 venue types | 87% |
+1. **Audit and cleaning** — inspect source records, duplicates, missing values, and column types. Preserve distinctions between *unknown*, *missing*, and observed zero.
+2. **Entity normalisation** — use RapidFuzz and domain-informed manual mappings to consolidate free-text food and pathogen labels; extract a primary venue label for comparisons. Grouping mixed dishes is an analytical convention, **not confirmation of a contaminated ingredient**.
+3. **Exploratory analysis** — examine event counts, disease burden, category rankings, seasonality, and setting-level outcomes in `NB3_EDA.ipynb`.
+4. **SQL analysis** — use SQLite for aggregation, derived indicators, joins, conditional categories, and window-function analyses in `NB4_SQL_Analysis.ipynb`.
+5. **Communication** — implement the distilled analysis as a four-section, year-filtered Streamlit data story in `dashboard.py`.
 
-**Why RapidFuzz over TF-IDF or embeddings:** Empirical comparison on this dataset showed that all three methods achieve similar accuracy on Type 1 problems (spelling variants) but all fail on Type 2 problems (semantic classification — e.g., which primary vehicle drives a mixed dish). The irreducible constraint is domain knowledge, not algorithm choice. RapidFuzz was selected for transparency and interpretability of the matching process.
+### Repository map
 
-**Scope limitation:** The binding analytical constraint is not ungrouped categories but the 46.2% Unknown rate in Food — a structural property of CDC surveillance design that no normalisation method can resolve.
-
----
-
-### 📊 03 · Exploratory Data Analysis
-
-**Analysis structure:** Univariate → Bivariate (Num×Num, Cat×Num, Cat×Cat) → Location risk profiling
-
-| Section | Focus | Key observation |
-|---|---|---|
-| **3.1 Temporal** | Annual trend + seasonality | Outbreaks declined 31% from 1998–2015; bimodal seasonal pattern |
-| **3.2 Food & pathogen frequency** | Top food vehicles + pathogens by outbreak count | Salad #1 food vehicle; Norovirus dominates frequency but not severity |
-| **3.3 Geography** | State + primary venue distribution | Florida #1 state; Restaurant accounts for 54% of outbreaks by count |
-| **3.4 Setting severity profile** | Outbreak scale × hospitalisation rate × fatality | Three anomalous settings: Prison/Jail (107 cases/event), Private Home (9.3% hosp rate), Nursing Home (44 fatalities) |
-| **4.1 Num × Num** | Illnesses vs hospitalisations correlation | Pearson r = 0.39 — outbreak size alone does not predict hospitalisation burden |
-| **4.2 Pathogen burden & severity** | Total illnesses vs hospitalisations; hosp/fatality rates | Norovirus leads illness count; Salmonella leads hospitalisation burden — rankings invert by metric |
-| **4.3 Temporal × pathogen** | Annual + seasonal pathogen composition | Pathogen composition stable across years; Norovirus peaks winter, Salmonella peaks summer |
-| **4.4 Food × pathogen matrix** | Illness burden by food–pathogen combination | Norovirus × Salad: 10,835 illnesses — highest of any single combination |
-| **3.5 Setting × pathogen** | Pathogen composition per venue type | Norovirus dominant in most settings; *C. perfringens* leads in Prison/Jail; *Salmonella* leads in Private Home |
-
----
-
-### 🗄️ 04 · SQL Analysis
-
-**Input:** `cleaned_data_grouped.csv` loaded into SQLite via Python  
-**Notebook:** `NB4_SQL_Analysis.ipynb`
-
-SQL re-analysis of the EDA findings — reproducing and extending NB3 results using structured queries. Demonstrates Python + SQL integration via `sqlite3` and `pandas.read_sql_query`.
-
-| SQL technique | Applied in |
+| File | Purpose |
 |---|---|
-| `SELECT`, `GROUP BY`, `ORDER BY`, `LIMIT` | Q1–Q9: temporal, geographic, frequency analysis |
-| Aggregate functions: `COUNT`, `SUM`, `ROUND` | Q1–Q9 |
-| Derived metrics: `SUM(x) / SUM(y)` | Q10–Q11: hospitalisation and fatality rates |
-| `WHERE`, `HAVING` | Q10–Q11: small-N artefact filtering |
-| Multi-column `GROUP BY` | Q12: food × pathogen combinations |
-| Subquery in `FROM` + `JOIN` | Q13: state severity score (outbreak count × hosp rate) |
-| `CASE WHEN` classification | Q14: pathogen risk tier (Critical / Severe / Moderate / Low) |
-| Window functions: `LAG`, `SUM OVER` | Q15: year-on-year change + cumulative outbreak count |
+| [`data/outbreaks.csv`](data/outbreaks.csv) | CDC-derived raw source |
+| [`data/cleaned_data_grouped.csv`](data/cleaned_data_grouped.csv) | Current canonical input to dashboard and validated notebooks |
+| [`NB1_Data_Cleaning.ipynb`](NB1_Data_Cleaning.ipynb) | Original cleaning process / historical notebook |
+| [`NB2_Entity_Normalisation.ipynb`](NB2_Entity_Normalisation.ipynb) | Original grouping process / historical notebook |
+| [`NB3_EDA.ipynb`](NB3_EDA.ipynb) | Current EDA notebook (validated execution) |
+| [`NB4_SQL_Analysis.ipynb`](NB4_SQL_Analysis.ipynb) | Current SQL notebook (validated execution) |
+| [`dashboard.py`](dashboard.py) | Final four-section Streamlit dashboard |
+| [`.streamlit/config.toml`](.streamlit/config.toml) | Light theme |
+| [`validate_outbreak_notebooks.yml`](.github/workflows/validate_outbreak_notebooks.yml) | CI dataset assertions and notebook execution |
 
-**Key SQL findings:**
+**Version note:** NB1/NB2 retain historical descriptions/output counts from an earlier cleaning pipeline. The authoritative analysis input is now `data/cleaned_data_grouped.csv`; NB1/NB2 are **not claimed to have been rerun and independently reconciled end-to-end** against the corrected dataset. The 2026-11-05 automated validation specifically covers the canonical file plus NB3 and NB4.
 
-| Query | Finding |
-|---|---|
-| Q13 · JOIN | State severity score reveals high-frequency states are not always high-severity |
-| Q14 · CASE WHEN | *Listeria monocytogenes* and *Salmonella* classified Critical/Severe; Norovirus classified Low despite highest illness burden |
-| Q15 · Window functions | YoY decline trend confirmed from 2000 peak; cumulative total reaches 18,828 by 2015 |
+## Reproducibility
 
----
+On **2026-11-05**, manually triggered [GitHub Actions run #42020479803](https://github.com/hyejeong0617/foodborne_outbreaks_eda/actions/runs/42020479803) completed successfully on `main` at commit [`fd52ccf`](https://github.com/hyejeong0617/foodborne_outbreaks_eda/commit/fd52ccfe4c3aa1fc949cc363361e03562aabf157):
 
-### 🖥️ Dashboard
+- Asserted **18,839 rows**, **3,560** missing hospitalization outcomes, and **3,538** missing fatality outcomes.
+- Successfully executed **NB3 (EDA)** and **NB4 (SQL)** using Python 3.11.
+- Uploaded the executed notebook files as an Actions artifact.
 
-A 3-page interactive Streamlit application with a global year-range filter and top-N selector.
+This verifies that those notebooks executed successfully against that dataset and commit. It does **not** validate every scientific interpretation, all historical preprocessing notebooks, or interactive browser behaviour. The current dashboard design was updated subsequently and was not part of that notebook workflow.
 
-| Page | Focus | Charts |
-|---|---|---|
-| **📊 Overview** | Trend, seasonality, geography, frequency | Annual dual-axis trend, monthly seasonality, state ranking, food/pathogen frequency |
-| **🦠 Pathogen risk** | Burden, severity rates, seasonal composition, food×pathogen matrix | Illness vs hospitalisation bar charts, hosp/fatality rate rankings, seasonal stacked bar, interactive heatmap |
-| **📍 Location analysis** | Setting severity profile, three-dimension severity comparison, setting×pathogen | Bubble chart, 3-panel severity bars, interactive heatmap |
-
----
-
-## 🧰 Tech Stack
-
-| Layer | Tools |
-|---|---|
-| Data wrangling | Python · pandas · numpy |
-| String normalisation | RapidFuzz (fuzzy matching) |
-| Statistical analysis | pandas · scipy |
-| Database queries | SQLite · SQL (aggregation, JOIN, window functions, CASE WHEN) |
-| Visualisation (EDA) | matplotlib · seaborn |
-| Visualisation (dashboard) | Plotly Express · Plotly Graph Objects |
-| Dashboard framework | Streamlit |
-
----
-
-## ▶️ Setup and Run
+### Run locally
 
 ```bash
 git clone https://github.com/hyejeong0617/foodborne_outbreaks_eda.git
 cd foodborne_outbreaks_eda
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 streamlit run dashboard.py
 ```
 
-**Notebook execution order:**
-```
-NB1_Data_Cleaning.ipynb
-    → cleaned_data.csv
-NB2_Entity_Normalisation.ipynb
-    → cleaned_data_grouped.csv
-NB3_EDA.ipynb
-    → (analysis and visualisations)
-NB4_SQL_Analysis.ipynb
-    → (SQL queries and visualisations)
-```
+For notebook validation, see [the GitHub Actions workflow](.github/workflows/validate_outbreak_notebooks.yml). Results are version-specific; rerun it after changing the underlying data or notebooks.
+
+## Tools and contributions
+
+**Tools:** Python, pandas, NumPy, RapidFuzz, SQLite, SQL, matplotlib, seaborn, Plotly, Streamlit, GitHub Actions.
+
+**My contribution:** research framing, food-safety interpretation, analytical choices about category grouping and denominators, EDA/SQL analysis, dashboard development, and evidence-based documentation. The project connects food microbiology domain knowledge with transparent, reproducible scientific data analysis.
+
+**Data attribution:** CDC foodborne disease outbreak surveillance data distributed through [Kaggle's CDC Foodborne Diseases dataset](https://www.kaggle.com/datasets/cdc/foodborne-diseases). This is a retrospective analysis of historical records, not official CDC advice or a real-time surveillance tool.
+
+## Related work
+
+- [RASFF Risk Predictor](https://github.com/hyejeong0617/rasff_risk_predictor) — regulatory notification analysis and machine learning
+- [Aeromonas Growth Predictor](https://github.com/hyejeong0617/aeromonas-growth-predictor) — predictive microbiology and ML
+- [Aeromonas AMR Genomics](https://github.com/hyejeong0617/amr_genomics_aeromonas) — genomics and antimicrobial resistance
 
 ---
 
-## 🔬 Domain Context
-
-This project applies the analytical discipline developed during doctoral research at NTNU (2019–2023), where I characterised antimicrobial resistance genes and virulence factors in *Aeromonas* spp. at the molecular level. The transition from genomic-scale data to population-level surveillance data requires the same core skill: generating falsifiable hypotheses from noisy biological data and being precise about what the data can and cannot establish.
-
-Specific domain knowledge that shaped analytical decisions in this project:
-
-- Recognising that the seasonal bimodality (summer peak vs winter peak) reflects pathogen ecology rather than reporting artefact — and treating it as a data observation, not a confirmed mechanism
-- Correctly merging "Norovirus genogroup I" and "Norovirus genogroup II" as the same epidemiological entity while keeping *Salmonella enterica* and *Salmonella* spp. as separate categories for aggregation purposes
-- Recognising that multi-ingredient dish classifications (e.g. "Chicken Salad") are analytical decisions under uncertainty, not microbiological determinations — and documenting this limitation explicitly
-- Interpreting *Vibrio vulnificus* 50% fatality rate as a small-N artefact (2 cases) vs *Listeria monocytogenes* 16% as clinically established (large N)
-- Distinguishing between what FDOSS data can establish (observed patterns in setting × pathogen distribution) and what it cannot (transmission mechanisms, causal explanations)
-
----
-
-## 🔗 Related Projects
-
-| Project | Domain | Type | Status |
-|---|---|---|---|
-| [rasff_risk_predictor](https://github.com/hyejeong0617/rasff_risk_predictor) | EU regulatory notifications | ML pipeline · NLP · Streamlit | ✅ Live |
-| **This repo** | Food safety surveillance | EDA · SQL · entity normalisation · Streamlit | ✅ Live |
-| [aeromonas-growth-predictor](https://github.com/hyejeong0617/aeromonas-growth-predictor) | Predictive microbiology · food safety | ML · GPR · SHAP · Streamlit | ✅ Live |
-| [amr_genomics_aeromonas](https://github.com/hyejeong0617/amr_genomics_aeromonas) | Microbial genomics · One Health | WGS pipeline · Python analysis · Streamlit | ✅ Live |
-
-**The four projects form a connected portfolio** — analysing food safety risk at four scales: real-time EU regulatory signal (RASFF ML), population-level surveillance (this repo), growth kinetics modelling (Aeromonas predictor), and molecular genomics (AMR genomics).
-
----
-
-## 📬 Contact
-
-**Hyejeong Lee** — PhD · Food Microbiology & Data Science
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Hyejeong%20Lee-0077B5?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/hyejeong-lee-75887465/)
-[![GitHub](https://img.shields.io/badge/GitHub-hyejeong0617-181717?logo=github&logoColor=white)](https://github.com/hyejeong0617)
-
-*Open to Domain Data Scientist / Regulatory Data Analyst roles in food safety, 
-      pharma, and biotech — Remote / Hybrid · Germany-based.*
+**Hyejeong Lee** · PhD in Biotechnology · Scientific Data Science & Applied AI  
+[GitHub](https://github.com/hyejeong0617) · [LinkedIn](https://www.linkedin.com/in/hyejeong-lee-75887465/)
