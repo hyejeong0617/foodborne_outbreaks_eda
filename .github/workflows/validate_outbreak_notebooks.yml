@@ -1,0 +1,47 @@
+name: Validate outbreak notebooks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'NB3_EDA.ipynb'
+      - 'NB4_SQL_Analysis.ipynb'
+      - 'data/cleaned_data_grouped.csv'
+      - '.github/workflows/validate_outbreak_notebooks.yml'
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install notebook dependencies
+        run: python -m pip install pandas numpy matplotlib seaborn scipy nbconvert ipykernel jupyter_client
+      - name: Validate canonical data
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          df = pd.read_csv("data/cleaned_data_grouped.csv")
+          assert len(df) == 18839, len(df)
+          assert df.Hospitalizations.isna().sum() == 3560
+          assert df.Fatalities.isna().sum() == 3538
+          assert not df[["Food_grouped","Species_grouped","primary_location"]].isna().any().any()
+          print(f"PASS: {len(df):,} rows; hospitalisations missing={df.Hospitalizations.isna().sum():,}; fatalities missing={df.Fatalities.isna().sum():,}")
+          PY
+      - name: Execute NB3
+        run: jupyter nbconvert --to notebook --execute NB3_EDA.ipynb --output executed_NB3_EDA.ipynb --ExecutePreprocessor.timeout=900
+      - name: Execute NB4
+        run: jupyter nbconvert --to notebook --execute NB4_SQL_Analysis.ipynb --output executed_NB4_SQL_Analysis.ipynb --ExecutePreprocessor.timeout=900
+      - name: Upload executed notebooks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: executed-outbreak-notebooks
+          path: |
+            executed_NB3_EDA.ipynb
+            executed_NB4_SQL_Analysis.ipynb
+          if-no-files-found: warn
