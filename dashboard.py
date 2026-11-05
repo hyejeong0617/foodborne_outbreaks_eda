@@ -50,6 +50,11 @@ html, body, [data-testid="stApp"], [data-testid="stAppViewContainer"], .stApp {
     border-radius: 12px; padding: 8px 12px;}
 [data-testid="stExpander"] {background: #FFFFFF; border: 1px solid #E3EAF0; border-radius: 10px;}
 [data-testid="stSidebar"] {border-right: 1px solid rgba(130,145,160,.20);}
+.portfolio-project-name {
+    color: #20334A !important; font-size: 1.28rem; font-weight: 800;
+    letter-spacing: -.025em; line-height: 1.4; margin-bottom: .55rem;
+    opacity: 1 !important;
+}
 .hero-eyebrow {color: #087F8C; font-size: .78rem; font-weight: 750; letter-spacing: .12em;}
 .hero-sub {color: #586B80; font-size: .99rem; max-width: 760px; line-height: 1.7;}
 .story-note {border-left: 3px solid #087F8C; padding: .65rem 1rem; margin: .7rem 0 1.2rem;
@@ -156,22 +161,43 @@ if filtered.empty:
     st.info("No records in the selected period.")
     st.stop()
 
-st.markdown('<div class="hero-eyebrow">FOOD SAFETY · SURVEILLANCE ANALYTICS</div>',
-            unsafe_allow_html=True)
-st.markdown("## Foodborne Disease Outbreak Analysis")
-st.markdown('<div class="hero-eyebrow">CDC FDOSS 1998–2015 · EXPLORATORY DATA ANALYSIS</div>',
-            unsafe_allow_html=True)
-st.title("What do 18 years of foodborne outbreaks reveal?")
+PAGE_HEADINGS = {
+    "01": (
+        "What do 18 years of foodborne outbreaks reveal?",
+        "Explore outbreak counts, illness burden, and seasonality across reporting years.",
+    ),
+    "02": (
+        "Which pathogens cause the greatest disease burden?",
+        "Compare reported illness counts and hospitalizations, then examine outcome-specific severity.",
+    ),
+    "03": (
+        "Which foods and pathogens are reported together?",
+        "Explore identified food vehicles and food–pathogen combinations in surveillance records.",
+    ),
+    "04": (
+        "How does outbreak burden vary by setting?",
+        "Compare average outbreak sizes and reported hospitalization outcomes across venues.",
+    ),
+}
+section_key = page[:2]
+page_title, page_description = PAGE_HEADINGS[section_key]
 st.markdown(
-    '<p class="hero-sub">An interactive data story using CDC outbreak reports '
-    'from 1998–2015. Explore how event frequency, illness burden, and reported '
-    'clinical severity tell different stories.</p>', unsafe_allow_html=True
+    '<div class="portfolio-project-name">Foodborne Disease Outbreak Analysis</div>',
+    unsafe_allow_html=True,
+)
+st.markdown(
+    '<div class="hero-eyebrow">CDC FDOSS 1998–2015 · EXPLORATORY DATA ANALYSIS</div>',
+    unsafe_allow_html=True,
+)
+st.title(page_title)
+st.markdown(
+    '<p class="hero-sub">' + html.escape(page_description) + '</p>',
+    unsafe_allow_html=True,
 )
 st.caption("Selected reporting period: " + str(year_range[0]) + "–" + str(year_range[1]))
 st.divider()
 
 if page.startswith("01"):
-    st.subheader("The big picture")
     st.markdown(
         '<div class="section-caption">Outbreaks and illness burden over time</div>',
         unsafe_allow_html=True,
@@ -211,7 +237,6 @@ if page.startswith("01"):
         st.plotly_chart(chart_layout(fig_m, 270), use_container_width=True)
 
 elif page.startswith("02"):
-    st.subheader("Frequency is not the same as clinical burden")
     st.caption("Compare the pathogens accounting for the most reported illnesses and hospitalizations.")
     path = severity(known(filtered, "Species_grouped"), "Species_grouped")
     if path.empty:
@@ -268,7 +293,6 @@ elif page.startswith("02"):
             st.info("No pathogen meets the display threshold.")
 
 elif page.startswith("03"):
-    st.subheader("Which foods are linked to reported outbreaks?")
     st.caption(
         "Reported food vehicles and food–pathogen combinations. "
         "These are surveillance associations, not causal attribution or individual risk estimates."
@@ -337,7 +361,6 @@ elif page.startswith("03"):
         )
 
 elif page.startswith("04"):
-    st.subheader("Where outbreaks happen matters")
     st.caption("Compare outbreak scale and hospitalization reporting across settings.")
     loc = known(filtered, "primary_location")
     profile = severity(loc, "primary_location")
