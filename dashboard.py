@@ -9,16 +9,16 @@ import plotly.graph_objects as go
 import streamlit as st
 
 st.set_page_config(
-    page_title="Foodborne Outbreaks | Data Story",
+    page_title="Foodborne Disease Outbreak Analysis | Portfolio",
     page_icon="🔬",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-NAVY = "#172C45"
-TEAL = "#087F8C"
-CORAL = "#D05C50"
-MUTED = "#6C7E90"
+NAVY = "#20334A"
+TEAL = "#157C8A"
+CORAL = "#C86755"
+MUTED = "#586B80"
 MONTHS = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
@@ -35,14 +35,27 @@ VENUES = {
 
 st.markdown("""
 <style>
+html, body, [data-testid="stApp"], [data-testid="stAppViewContainer"], .stApp {
+    background-color: #F8FAFC !important; color: #20334A !important;
+}
+[data-testid="stHeader"] {background: #F8FAFC !important;}
+[data-testid="stSidebar"], [data-testid="stSidebarContent"] {
+    background: #EDF3F7 !important; color: #20334A !important;
+}
+[data-testid="stSidebar"] * {color: #20334A;}
+[data-testid="stApp"] p, [data-testid="stApp"] label, [data-testid="stApp"] h1,
+[data-testid="stApp"] h2, [data-testid="stApp"] h3 {color: #20334A;}
 .block-container {max-width: 1160px; padding-top: 2rem; padding-bottom: 3.5rem;}
+.stPlotlyChart {background: #FFFFFF; border: 1px solid #E3EAF0;
+    border-radius: 12px; padding: 8px 12px;}
+[data-testid="stExpander"] {background: #FFFFFF; border: 1px solid #E3EAF0; border-radius: 10px;}
 [data-testid="stSidebar"] {border-right: 1px solid rgba(130,145,160,.20);}
 .hero-eyebrow {color: #087F8C; font-size: .78rem; font-weight: 750; letter-spacing: .12em;}
-.hero-sub {color: #7C8B9A; font-size: .99rem; max-width: 760px; line-height: 1.7;}
+.hero-sub {color: #586B80; font-size: .99rem; max-width: 760px; line-height: 1.7;}
 .story-note {border-left: 3px solid #087F8C; padding: .65rem 1rem; margin: .7rem 0 1.2rem;
     background: rgba(8,127,140,.07); border-radius: 0 .45rem .45rem 0;}
-.section-caption {color:#82909D; font-size: .85rem; margin-bottom: .4rem;}
-[data-testid="stMetric"] {padding: .75rem 1rem; border: 1px solid rgba(130,145,160,.22);
+.section-caption {color:#64778A; font-size: .85rem; margin-bottom: .4rem;}
+[data-testid="stMetric"] {background: #FFFFFF; padding: .75rem 1rem; border: 1px solid #E0E7EE;
     border-radius: .75rem; min-height: 105px;}
 [data-testid="stMetricLabel"] {font-size: .82rem;}
 [data-testid="stMetricValue"] {font-size: 1.65rem;}
@@ -102,9 +115,9 @@ def chart_layout(fig, height=390, left=25):
     fig.update_layout(
         height=height,
         margin=dict(l=left, r=25, t=35, b=35),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(size=12),
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+        font=dict(size=12, color=NAVY),
         showlegend=False,
         hoverlabel=dict(bgcolor="#172C45", font_color="#FFFFFF"),
     )
@@ -126,7 +139,7 @@ with st.sidebar:
     st.caption("CDC FDOSS · 1998–2015")
     page = st.radio(
         "Explore",
-        ["01 · The big picture", "02 · Pathogen burden", "03 · Where outbreaks happen"],
+        ["01 · The big picture", "02 · Pathogen burden", "03 · Food & pathogen links", "04 · Where outbreaks happen"],
     )
     st.divider()
     year_range = st.slider(
@@ -144,6 +157,9 @@ if filtered.empty:
     st.stop()
 
 st.markdown('<div class="hero-eyebrow">FOOD SAFETY · SURVEILLANCE ANALYTICS</div>',
+            unsafe_allow_html=True)
+st.markdown("## Foodborne Disease Outbreak Analysis")
+st.markdown('<div class="hero-eyebrow">CDC FDOSS 1998–2015 · EXPLORATORY DATA ANALYSIS</div>',
             unsafe_allow_html=True)
 st.title("What do 18 years of foodborne outbreaks reveal?")
 st.markdown(
@@ -252,6 +268,75 @@ elif page.startswith("02"):
             st.info("No pathogen meets the display threshold.")
 
 elif page.startswith("03"):
+    st.subheader("Which foods are linked to reported outbreaks?")
+    st.caption(
+        "Reported food vehicles and food–pathogen combinations. "
+        "These are surveillance associations, not causal attribution or individual risk estimates."
+    )
+    food = known(filtered, "Food_grouped")
+    pathogen = known(filtered, "Species_grouped")
+    both = known(food, "Species_grouped")
+    a, b, c = st.columns(3)
+    a.metric("Events with known food", f"{len(food):,}")
+    b.metric("Events with known pathogen", f"{len(pathogen):,}")
+    c.metric("Events with both known", f"{len(both):,}")
+    st.caption(
+        f"Food unknown or missing: {len(filtered) - len(food):,} events. "
+        "Unknowns are excluded only from the corresponding category rankings."
+    )
+
+    st.markdown("#### Frequently reported food vehicles")
+    top_food = food["Food_grouped"].value_counts().head(7).sort_values()
+    if top_food.empty:
+        st.info("No identified food vehicles in the selected years.")
+    else:
+        fig_food = go.Figure(go.Bar(
+            y=top_food.index, x=top_food.values,
+            orientation="h", marker_color=TEAL,
+            hovertemplate="%{y}: %{x:,} outbreaks<extra></extra>",
+        ))
+        fig_food.update_layout(xaxis_title="Reported outbreaks", yaxis_title="")
+        st.plotly_chart(chart_layout(fig_food, 350, 35), use_container_width=True)
+
+    st.markdown("#### Food–pathogen combinations")
+    metric = st.radio(
+        "Compare combinations by", ["Outbreak count", "Reported illnesses"],
+        horizontal=True, key="food_pair_metric",
+    )
+    if both.empty:
+        st.info("No records have both an identified food vehicle and pathogen.")
+    else:
+        pairs = both.groupby(["Food_grouped", "Species_grouped"]).agg(
+            Outbreaks=("Illnesses", "size"),
+            Illnesses=("Illnesses", "sum"),
+        ).reset_index()
+        field = "Outbreaks" if metric == "Outbreak count" else "Illnesses"
+        pair_top = pairs.nlargest(7, field).copy()
+        pair_top["Pair"] = (
+            pair_top["Food_grouped"].str.slice(0, 35) + " · " +
+            pair_top["Species_grouped"].str.slice(0, 35)
+        )
+        pair_top = pair_top.sort_values(field)
+        fig_pair = go.Figure(go.Bar(
+            y=pair_top["Pair"], x=pair_top[field], orientation="h",
+            marker_color=CORAL,
+            customdata=pair_top[["Food_grouped", "Species_grouped"]].to_numpy(),
+            hovertemplate=(
+                "%{customdata[0]} + %{customdata[1]}<br>"
+                "%{x:,} " + ("outbreaks" if field == "Outbreaks" else "illnesses") +
+                "<extra></extra>"
+            ),
+        ))
+        fig_pair.update_layout(xaxis_title=metric, yaxis_title="")
+        st.plotly_chart(chart_layout(fig_pair, 390, 35), use_container_width=True)
+        leader = pairs.nlargest(1, field).iloc[0]
+        callout(
+            f"Leading observed pair: {leader['Food_grouped']} + {leader['Species_grouped']}.",
+            "The food field describes implicated food vehicles in reports; this does not "
+            "identify the contaminated ingredient or prove a transmission mechanism.",
+        )
+
+elif page.startswith("04"):
     st.subheader("Where outbreaks happen matters")
     st.caption("Compare outbreak scale and hospitalization reporting across settings.")
     loc = known(filtered, "primary_location")
