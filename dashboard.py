@@ -45,7 +45,7 @@ html, body, [data-testid="stApp"], [data-testid="stAppViewContainer"], .stApp {
 [data-testid="stSidebar"] * {color: #20334A;}
 [data-testid="stApp"] p, [data-testid="stApp"] label, [data-testid="stApp"] h1,
 [data-testid="stApp"] h2, [data-testid="stApp"] h3 {color: #20334A;}
-.block-container {max-width: 1160px; padding-top: 2rem; padding-bottom: 3.5rem;}
+.block-container {max-width: 1160px; padding-top: 5.5rem !important; padding-bottom: 3.5rem;}
 .stPlotlyChart {background: #FFFFFF; border: 1px solid #E3EAF0;
     border-radius: 12px; padding: 8px 12px;}
 [data-testid="stExpander"] {background: #FFFFFF; border: 1px solid #E3EAF0; border-radius: 10px;}
@@ -53,7 +53,7 @@ html, body, [data-testid="stApp"], [data-testid="stAppViewContainer"], .stApp {
 .portfolio-project-name {
     color: #20334A !important; font-size: 1.28rem; font-weight: 800;
     letter-spacing: -.025em; line-height: 1.4; margin-bottom: .55rem;
-    opacity: 1 !important;
+    opacity: 1 !important; padding-top: .25rem; padding-bottom: .35rem;
 }
 .hero-eyebrow {color: #087F8C; font-size: .78rem; font-weight: 750; letter-spacing: .12em;}
 .hero-sub {color: #586B80; font-size: .99rem; max-width: 760px; line-height: 1.7;}
