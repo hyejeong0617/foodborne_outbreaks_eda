@@ -268,7 +268,7 @@ elif page.startswith("03"):
         r1, r2, r3 = st.columns(3)
         if not selected.empty:
             largest = selected.nlargest(1, "Cases_per_event").iloc[0]
-            r1.metric("Largest avg. event", largest["Venue"], f"{largest['Cases_per_event']:.0f} cases/event")
+            r1.metric("Largest avg. event", f"{largest['Cases_per_event']:.0f} cases/event", help=largest["Venue"])
             r2.metric("Known-setting events", f"{len(loc):,}")
             r3.metric("Settings compared", str(len(selected)))
 
